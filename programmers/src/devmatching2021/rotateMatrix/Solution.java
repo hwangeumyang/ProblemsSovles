@@ -3,7 +3,8 @@ package devmatching2021.rotateMatrix;
 import java.util.stream.*;
 import java.util.*;
 import java.util.function.*;
-public class Solution {
+
+class Solution {
     public int[] solution(int rows, int columns, int[][] queries) {
         
         if(rows>50) return null;
@@ -11,6 +12,7 @@ public class Solution {
         
         int[][] board = new int[rows][columns];
         
+        //fill board
         for(int i=1, row=0; row<rows; row++)
             for(int col=0; col<columns; col++) {
                 board[row][col] = i++;
@@ -37,8 +39,8 @@ public class Solution {
         // round(board, t);
         
         answer = new int[queries.length];
-        for(int q=0; q<queries.length; ++q) {
-            answer[q] = round2(board, queries[q]);
+        for(int q=0, leng=queries.length; q<leng; ++q) {
+        	answer[q] = round3(board, queries[q]);
         }
         printBoard.run();
         
@@ -133,10 +135,10 @@ public class Solution {
         return min[0];
     }
     
+  //처음엔 반복을 4번 돌릴까 했는 데 그와 방식이 유사하다 할 수 있다.
     int round3(int[][] board, int [] area) {
         int[] min = {Integer.MAX_VALUE};
-        //실제 배열 인덱스는 0부터지만 영역의 좌표는 1부터 시작한다.
-        
+        //실제 배열 인덱스는 0부터지만 입력으로 들어온 영역의 좌표는 1부터 시작한다.
         
         final int r1 = area[0]-1, r2 = area[2]-1;
         final int c1 = area[1]-1, c2 = area[3]-1;
@@ -148,38 +150,39 @@ public class Solution {
                 
         //code for next Point
         int dir = 0;
-        Predicate<Integer[]>[] endOfLine = {
-            curPoint -> curPoint[0]==r2,
-            curPoint -> curPoint[0]==c2,
-            curPoint -> curPoint[0]==r1,
-            curPoint -> curPoint[0]==c1
-        };
-        Consumer<Integer[]>[] move = {
-            curPoint -> { curPoint[0]++; },
-            curPoint -> { curPoint[1]++; },
-            curPoint -> { curPoint[0]--; },
-            curPoint -> { curPoint[1]--; }            
-        };
         
-                
-        int[] point = {r1, c1};
+        Predicate<int[]>[] endOfLine = new Predicate[4];
+        endOfLine[0] = curPoint->curPoint[1]==c2;
+        endOfLine[1] = curPoint->curPoint[0]==r2;
+        endOfLine[2] = curPoint->curPoint[1]==c1;
+        endOfLine[3] = curPoint->curPoint[0]==r1;;
+        
+        Consumer<int[]>[] move = new Consumer[4];        
+        move[0] = curPoint->curPoint[1]++;
+        move[1] = curPoint->curPoint[0]++;
+        move[2] = curPoint->curPoint[1]--;
+        move[3] = curPoint->curPoint[0]--;
+
+        int[] point = {r1, c1};//start point
         int[] saved= {board[r1][c1]};
         
         //round logic
-        Consumer<int[]> round = (point) -> {
-            int tmp = board[point[0]][point[1]];
+        //이 부분은 사실 함수형 인터페이스를 쓰지 않는 편이 적절하다 생각한다.
+        //이동 부분이 많이 간략화 되어 숫자만 변동하면 되기도하고, min을 포인터처럼 쓰기 위해 배열로 만들지 않아도 된다.
+        Consumer<int[]> swap = (_point) -> {
+            int tmp = board[_point[0]][_point[1]];
             if(min[0]>tmp) min[0]=tmp;
-            board[point[0]][point[1]] = saved[0];
+            board[_point[0]][_point[1]] = saved[0];
             saved[0] = tmp;
         };
-        
-
+                
         while (dir<4) {
-            if(endOfLine[dir].test(point)) ++dir;
             move[dir].accept(point);
-            round(point);
+            swap.accept(point);
+            if(endOfLine[dir].test(point)) ++dir;
         }
         
         return min[0];
     }
+    
 }

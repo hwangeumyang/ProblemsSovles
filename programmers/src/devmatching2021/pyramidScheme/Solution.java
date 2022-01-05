@@ -104,20 +104,59 @@ class Solution {
         return answer;
     }
     
+    //person class for solution 3
     static class Person2 {
         String name;
-        Person referral;
+        Person2 referral;
         int earnings;
-        public Person2(String name, Person referral) {
+        public Person2(String name, Person2 referral) {
             this.name = name;
             this.referral = referral;
             this.earnings = 0;
         }
         public void earn(int money){
-//            earnings+=money;            
+        	int tax = money/10;
+        	earnings+=money-tax;
+        	referral.earn(tax);        	       
         }
         public String getRef() { return referral.name; }
         public int getEarnings() { return earnings; }
         public String toString() { return name + ": " + earnings; }
+    }
+
+    //no need more method
+    public int[] solution3(String[] enroll, String[] referral, String[] seller, int[] amount) {
+        int enleng = enroll.length; 
+        int[] answer = new int[enleng]; 
+        
+        Map<String, Person2> map = new HashMap<>();
+        Person2[] persons = new Person2[enleng];
+        
+        
+        //처음엔 Person2.earn()에 if문을 달려했으나 이렇게 써도 재밌을것 같다.
+        //상속구조도 생각하지 않은 것은 아니나 거창한 것 같다.
+        map.put("-", new Person2("mock", null) {
+        	@Override
+        	public void earn(int money) {
+        		 
+        	}
+        });
+        //조직참여 순이라 referral은 항상 속해있다.
+        for(int i=0; i<enleng; ++i) {
+            Person2 p = new Person2(enroll[i], map.get(referral[i]));
+            map.put(enroll[i], p);
+            persons[i] = p;
+        }
+        
+        for(int i=0, leng=seller.length; i<leng; ++i) {
+            //map, person, amount
+        	map.get(seller[i]).earn(amount[i]*100);
+        }
+        
+        for(int i=0; i<enleng; ++i) {
+            answer[i] = persons[i].getEarnings();
+        }
+        
+        return answer;
     }
 }
